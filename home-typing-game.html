@@ -148,61 +148,81 @@ body {
   transition:width .5s linear, background .5s;
 }
 
-/* ===== モンスターステージ ===== */
+/* ===== モンスターステージ（奥行き演出） ===== */
 .monster-stage {
-  width:100%; height:130px;
+  width:100%; height:160px;
   position:relative; overflow:hidden;
-  background:linear-gradient(180deg,rgba(13,17,23,0) 0%,rgba(30,20,50,.6) 100%);
+  /* 奥（上）が暗く・手前（下）が明るい遠近感 */
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(168,85,247,.18) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(5,5,20,1) 0%, rgba(20,14,40,.85) 100%);
   border-radius:12px;
-  border:1px solid rgba(168,85,247,.2);
+  border:1px solid rgba(168,85,247,.25);
 }
+/* 遠近感ライン（消失点） */
+.monster-stage::before {
+  content:'';
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:0; height:0;
+  border-left:  60vw solid transparent;
+  border-right: 60vw solid transparent;
+  border-bottom:160px solid rgba(168,85,247,.06);
+  pointer-events:none;
+}
+/* 手前の光るライン */
 .monster-stage::after {
   content:'';
-  position:absolute; bottom:0; left:0; right:0; height:2px;
-  background:linear-gradient(90deg,transparent,rgba(168,85,247,.7),transparent);
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,transparent,rgba(168,85,247,.9),transparent);
 }
 
 #monster {
   position:absolute;
-  bottom:10px;
-  font-size:3.4rem;
+  /* 中央固定・サイズ変化で奥→手前を表現 */
+  left:50%; bottom:8px;
+  transform:translateX(-50%) scale(var(--ms, 0.15));
+  transform-origin: bottom center;
+  font-size:5rem;
   line-height:1;
-  filter:drop-shadow(0 0 14px rgba(168,85,247,.9));
-  will-change:left;
+  opacity: var(--mo, 0.2);
+  filter:drop-shadow(0 0 calc(var(--ms,0.15)*40px) rgba(168,85,247,.9));
+  will-change:transform, opacity, filter;
   transition: filter .15s;
 }
 #monster.hurt {
-  filter:drop-shadow(0 0 24px red) brightness(3) !important;
+  filter:drop-shadow(0 0 30px red) brightness(3) !important;
   animation: monster-hurt .3s ease-out;
 }
 @keyframes monster-hurt {
-  0%  { transform:translateX(0) scaleX(1); }
-  30% { transform:translateX(12px) scaleX(-1.1); }
-  100%{ transform:translateX(0) scaleX(1); }
+  0%  { transform:translateX(-50%) scale(var(--ms,1)) skewX(0deg); }
+  30% { transform:translateX(-40%) scale(calc(var(--ms,1)*1.1)) skewX(-10deg); }
+  100%{ transform:translateX(-50%) scale(var(--ms,1)) skewX(0deg); }
 }
 #monster.explode {
   animation: explode .45s ease-out forwards !important;
 }
 @keyframes explode {
-  0%  { transform:scale(1);   opacity:1; filter:brightness(3) drop-shadow(0 0 20px orange); }
-  50% { transform:scale(2.8); opacity:.8; }
-  100%{ transform:scale(0);   opacity:0; }
+  0%  { transform:translateX(-50%) scale(var(--ms,1)); opacity:1; filter:brightness(4) drop-shadow(0 0 30px orange); }
+  50% { transform:translateX(-50%) scale(calc(var(--ms,1)*2.5)); opacity:.8; }
+  100%{ transform:translateX(-50%) scale(0); opacity:0; }
 }
 
-/* フキダシ */
+/* フキダシ（モンスターの上・スケールに追従） */
 #word-bubble {
   position:absolute;
+  left:50%; transform:translateX(-50%);
   background:var(--panel2);
   border:2px solid var(--accent3);
   border-radius:12px;
-  padding:6px 14px;
+  padding:6px 16px;
   font-family:'Kaisei Decol',serif;
-  font-size:1.5rem; font-weight:700;
+  font-size:calc(0.8rem + var(--ms,0.15) * 1.4rem);
+  font-weight:700;
   color:white;
   white-space:nowrap;
   box-shadow:0 0 16px rgba(168,85,247,.5);
   pointer-events:none;
-  will-change:left;
+  transition: bottom .05s, font-size .05s;
 }
 #word-bubble::after {
   content:'';
@@ -251,46 +271,47 @@ body {
 .next-key-hint { font-size:.82rem; color:#90caf9; min-height:22px; text-align:center; }
 .finger-tag { display:inline-block; padding:2px 10px; border-radius:20px; font-weight:700; font-size:.78rem; }
 
-/* ===== キーボード ===== */
+/* ===== キーボード（大型・画面下1/3） ===== */
 .keyboard-wrap {
   width:100%;
-  background:rgba(0,0,0,.25);
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:12px;
-  padding:10px 8px 8px;
+  background:rgba(0,0,0,.3);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  padding:14px 12px 12px;
   overflow-x:auto;
 }
-.keyboard { display:flex; flex-direction:column; gap:4px; min-width:560px; }
-.kb-row   { display:flex; gap:4px; }
+.keyboard { display:flex; flex-direction:column; gap:6px; min-width:600px; }
+.kb-row   { display:flex; gap:6px; }
 
 .key {
-  height:38px; min-width:38px;
-  border-radius:6px;
-  border:1px solid rgba(255,255,255,.08);
+  height:52px; min-width:52px;
+  border-radius:9px;
+  border:2px solid rgba(255,255,255,.1);
   display:flex; align-items:center; justify-content:center;
-  font-size:.75rem; font-weight:700;
-  color:rgba(255,255,255,.35);
-  background:rgba(255,255,255,.03);
+  font-size:1rem; font-weight:800;
+  color:rgba(255,255,255,.4);
+  background:rgba(255,255,255,.04);
   transition:all .08s;
   cursor:default; flex-shrink:0; position:relative;
+  box-shadow: 0 3px 0 rgba(0,0,0,.4);
 }
-.key.f-pinky  { background:rgba(255,107,107,.16); border-color:rgba(255,107,107,.35); color:var(--f-pinky); }
-.key.f-ring   { background:rgba(255,169, 77,.16); border-color:rgba(255,169, 77,.35); color:var(--f-ring);  }
-.key.f-middle { background:rgba(105,219,124,.16); border-color:rgba(105,219,124,.35); color:var(--f-middle);}
-.key.f-index  { background:rgba( 77,171,247,.16); border-color:rgba( 77,171,247,.35); color:var(--f-index); }
-.key.f-thumb  { background:rgba(218,119,242,.16); border-color:rgba(218,119,242,.35); color:var(--f-thumb); }
+.key.f-pinky  { background:rgba(255,107,107,.18); border-color:rgba(255,107,107,.45); color:var(--f-pinky); box-shadow:0 3px 0 rgba(255,107,107,.2); }
+.key.f-ring   { background:rgba(255,169, 77,.18); border-color:rgba(255,169, 77,.45); color:var(--f-ring);  box-shadow:0 3px 0 rgba(255,169,77,.2); }
+.key.f-middle { background:rgba(105,219,124,.18); border-color:rgba(105,219,124,.45); color:var(--f-middle);box-shadow:0 3px 0 rgba(105,219,124,.2); }
+.key.f-index  { background:rgba( 77,171,247,.18); border-color:rgba( 77,171,247,.45); color:var(--f-index); box-shadow:0 3px 0 rgba(77,171,247,.2); }
+.key.f-thumb  { background:rgba(218,119,242,.18); border-color:rgba(218,119,242,.45); color:var(--f-thumb); box-shadow:0 3px 0 rgba(218,119,242,.2); }
 
 .key.home-key::after {
-  content:''; position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
-  width:5px; height:2px; border-radius:1px; background:currentColor; opacity:.7;
+  content:''; position:absolute; bottom:5px; left:50%; transform:translateX(-50%);
+  width:7px; height:3px; border-radius:2px; background:currentColor; opacity:.8;
 }
 .key.active-key {
-  transform:scale(1.15);
-  box-shadow:0 0 18px currentColor, 0 0 6px currentColor;
+  transform:scale(1.18) translateY(-2px);
+  box-shadow:0 0 22px currentColor, 0 0 8px currentColor, 0 5px 0 rgba(0,0,0,.3);
   color:white !important; z-index:2;
 }
-.key.pressed { transform:scale(.88); opacity:.55; }
-.key.space { flex:1; min-width:180px; font-size:.65rem; color:rgba(255,255,255,.25); }
+.key.pressed { transform:scale(.88) translateY(3px); box-shadow:none; opacity:.6; }
+.key.space { flex:1; min-width:200px; font-size:.8rem; color:rgba(255,255,255,.3); }
 
 /* ===== ランキング ===== */
 #ranking-screen .panel {
@@ -423,9 +444,9 @@ body {
 }
 
 @media(max-width:640px){
-  .key{height:32px;min-width:30px;font-size:.65rem;}
-  .key.space{min-width:100px;}
-  #monster{font-size:2.4rem;}
+  .key{height:42px;min-width:40px;font-size:.85rem;}
+  .key.space{min-width:120px;}
+  #monster{font-size:4rem;}
 }
 </style>
 </head>
@@ -594,7 +615,7 @@ body {
 // =============================================
 const TOTAL_TIME  = 60;
 const PENALTY_SEC = 2;
-const WALK_DURATION_MS = 28000; // モンスターが端到達するまでの時間(ms)
+const WALK_DURATION_MS = 10000; // モンスターが端到達するまでの時間(ms)
 
 const MONSTERS = ['🐉','👾','🧟','🦖','👹','🐲','🤖','👻','🦕','😈','🧌','🐊'];
 
@@ -620,15 +641,15 @@ const WORDS = [
   {word:'ロケット',romaji:'roketto',   hint:'宇宙船'},
   {word:'せいざ',  romaji:'seiza',     hint:'星座'},
   {word:'ぎんが',  romaji:'ginga',     hint:'銀河'},
-  {word:'たんけん',romaji:'tanken',    hint:'探検'},
-  {word:'ぼうけん',romaji:'bouken',    hint:'冒険'},
+  {word:'たんけん',romaji:'tannken',    hint:'探検'},
+  {word:'ぼうけん',romaji:'bounnken',    hint:'冒険'},
   {word:'かがく',  romaji:'kagaku',    hint:'科学'},
-  {word:'でんき',  romaji:'denki',     hint:'電気'},
+  {word:'でんき',  romaji:'dennki',     hint:'電気'},
   {word:'ひこうき',romaji:'hikouki',   hint:'飛行機'},
-  {word:'しんかんせん',romaji:'sinkansen',hint:'新幹線'},
+  {word:'しんかんせん',romaji:'sinkannsenn',hint:'新幹線'},
   {word:'どうぶつ',romaji:'doubutu',   hint:'動物'},
-  {word:'しぜん',  romaji:'sizen',     hint:'自然'},
-  {word:'たいけん',romaji:'taiken',    hint:'体験'},
+  {word:'しぜん',  romaji:'sizenn',     hint:'自然'},
+  {word:'たいけん',romaji:'taikenn',    hint:'体験'},
 ];
 
 const KEY_FINGER = {
@@ -654,37 +675,512 @@ const KB_ROWS = [
   ['1','2','3','4','5','6','7','8','9','0','-','^'],
   ['q','w','e','r','t','y','u','i','o','p','@'],
   ['a','s','d','f','g','h','j','k','l',';',':'],
-  ['z','x','c','v','b','n','m',',','.', '/'],
-  ['space'],
+<script>
+// =============================================
+//  定数
+// =============================================
+const TOTAL_TIME  = 60;
+const PENALTY_SEC = 2;
+const WALK_DURATION_MS = 10000; // モンスターが端到達するまでの時間(ms)
+
+const MONSTERS = ['🐉','👾','🧟','🦖','👹','🐲','🤖','👻','🦕','😈','🧌','🐊'];
+
+<script>
+// =============================================
+//  定数・データ
+// =============================================
+const TOTAL_TIME = 60;
+const PENALTY_SEC = 2;
+const WALK_DURATION_MS = 10000;
+
+const MONSTERS = ['🐉','👾','🧟','🦖','👹','🐲','🤖','👻','🦕','😈','🧌','🐊'];
+
+// ========== 全480問のデータ ==========
+const ALL_WORDS = [
+  // 動物（90問）
+  {word:'いぬ',romaji:'inu',hint:'🐕',cat:'animals'},
+  {word:'ねこ',romaji:'neko',hint:'🐈',cat:'animals'},
+  {word:'うさぎ',romaji:'usagi',hint:'🐰',cat:'animals'},
+  {word:'きつね',romaji:'kitune',hint:'🦊',cat:'animals'},
+  {word:'たぬき',romaji:'tanuki',hint:'たぬき',cat:'animals'},
+  {word:'くま',romaji:'kuma',hint:'🐻',cat:'animals'},
+  {word:'とら',romaji:'tora',hint:'🐯',cat:'animals'},
+  {word:'らいおん',romaji:'raionn',hint:'🦁',cat:'animals'},
+  {word:'ぞう',romaji:'zou',hint:'🐘',cat:'animals'},
+  {word:'きりん',romaji:'kirinn',hint:'🦒',cat:'animals'},
+  {word:'さる',romaji:'saru',hint:'🐒',cat:'animals'},
+  {word:'りす',romaji:'risu',hint:'🐿️',cat:'animals'},
+  {word:'はむすたー',romaji:'hamusuta-',hint:'🐹',cat:'animals'},
+  {word:'もぐら',romaji:'mogura',hint:'もぐら',cat:'animals'},
+  {word:'むささび',romaji:'musasabi',hint:'むささび',cat:'animals'},
+  {word:'しか',romaji:'sika',hint:'🦌',cat:'animals'},
+  {word:'いのしし',romaji:'inosisi',hint:'🐗',cat:'animals'},
+  {word:'うま',romaji:'uma',hint:'🐴',cat:'animals'},
+  {word:'ひつじ',romaji:'hituzi',hint:'🐑',cat:'animals'},
+  {word:'やぎ',romaji:'yagi',hint:'🐐',cat:'animals'},
+  {word:'ぶた',romaji:'buta',hint:'🐷',cat:'animals'},
+  {word:'にわとり',romaji:'niwatori',hint:'🐓',cat:'animals'},
+  {word:'あひる',romaji:'ahiru',hint:'🦆',cat:'animals'},
+  {word:'こうもり',romaji:'koumori',hint:'🦇',cat:'animals'},
+  {word:'ひょう',romaji:'hyou',hint:'🐆',cat:'animals'},
+  {word:'ちーたー',romaji:'ti-ta-',hint:'チーター',cat:'animals'},
+  {word:'かば',romaji:'kaba',hint:'🦛',cat:'animals'},
+  {word:'さい',romaji:'sai',hint:'🦏',cat:'animals'},
+  {word:'おおかみ',romaji:'ookami',hint:'🐺',cat:'animals'},
+  {word:'ごりら',romaji:'gorira',hint:'🦍',cat:'animals'},
+  {word:'ちんぱんじー',romaji:'tinnpannzi-',hint:'🦧',cat:'animals'},
+  {word:'らくだ',romaji:'rakuda',hint:'🐪',cat:'animals'},
+  {word:'しまうま',romaji:'simauma',hint:'🦓',cat:'animals'},
+  {word:'あるぱか',romaji:'arupaka',hint:'🦙',cat:'animals'},
+  {word:'びーばー',romaji:'bi-ba-',hint:'🦫',cat:'animals'},
+  {word:'あなぐま',romaji:'anaguma',hint:'🦡',cat:'animals'},
+  {word:'かんがるー',romaji:'kanngaru-',hint:'🦘',cat:'animals'},
+  {word:'ぱんだ',romaji:'pannda',hint:'🐼',cat:'animals'},
+  {word:'もるもっと',romaji:'morumotto',hint:'モルモット',cat:'animals'},
+  {word:'はりねずみ',romaji:'harinezumi',hint:'🦔',cat:'animals'},
+  {word:'はと',romaji:'hato',hint:'🕊️',cat:'animals'},
+  {word:'すずめ',romaji:'suzume',hint:'🐦',cat:'animals'},
+  {word:'からす',romaji:'karasu',hint:'🐦‍⬛',cat:'animals'},
+  {word:'つる',romaji:'turu',hint:'つる',cat:'animals'},
+  {word:'ふくろう',romaji:'hukurou',hint:'🦉',cat:'animals'},
+  {word:'わし',romaji:'wasi',hint:'🦅',cat:'animals'},
+  {word:'ぺんぎん',romaji:'pennginn',hint:'🐧',cat:'animals'},
+  {word:'こうのとり',romaji:'kounotori',hint:'こうのとり',cat:'animals'},
+  {word:'おうむ',romaji:'oumu',hint:'🦜',cat:'animals'},
+  {word:'かわせみ',romaji:'kawasemi',hint:'かわせみ',cat:'animals'},
+  {word:'きつつき',romaji:'kitutuki',hint:'きつつき',cat:'animals'},
+  {word:'たか',romaji:'taka',hint:'🦅',cat:'animals'},
+  {word:'くじゃく',romaji:'kuzyaku',hint:'🦚',cat:'animals'},
+  {word:'ふらみんご',romaji:'huraminngo',hint:'🦩',cat:'animals'},
+  {word:'あほうどり',romaji:'ahoudori',hint:'アホウドリ',cat:'animals'},
+  {word:'いるか',romaji:'iruka',hint:'🐬',cat:'animals'},
+  {word:'くじら',romaji:'kuzira',hint:'🐋',cat:'animals'},
+  {word:'さかな',romaji:'sakana',hint:'🐟',cat:'animals'},
+  {word:'たこ',romaji:'tako',hint:'🐙',cat:'animals'},
+  {word:'いか',romaji:'ika',hint:'🦑',cat:'animals'},
+  {word:'えび',romaji:'ebi',hint:'🦐',cat:'animals'},
+  {word:'かに',romaji:'kani',hint:'🦀',cat:'animals'},
+  {word:'ほたて',romaji:'hotate',hint:'ほたて',cat:'animals'},
+  {word:'さめ',romaji:'same',hint:'🦈',cat:'animals'},
+  {word:'まんぼう',romaji:'mannbou',hint:'まんぼう',cat:'animals'},
+  {word:'たつのおとしご',romaji:'tatunootosigo',hint:'たつのおとしご',cat:'animals'},
+  {word:'かわうそ',romaji:'kawauso',hint:'🦦',cat:'animals'},
+  {word:'らっこ',romaji:'rakko',hint:'🦦',cat:'animals'},
+  {word:'あざらし',romaji:'azarasi',hint:'🦭',cat:'animals'},
+  {word:'せいうち',romaji:'seiuti',hint:'せいうち',cat:'animals'},
+  {word:'かめ',romaji:'kame',hint:'🐢',cat:'animals'},
+  {word:'わに',romaji:'wani',hint:'🐊',cat:'animals'},
+  {word:'かえる',romaji:'kaeru',hint:'🐸',cat:'animals'},
+  {word:'さんしょううお',romaji:'sansyouuo',hint:'さんしょううお',cat:'animals'},
+  {word:'ぴらにあ',romaji:'pirania',hint:'ピラニア',cat:'animals'},
+  {word:'ちょうちょ',romaji:'tyoutyou',hint:'🦋',cat:'animals'},
+  {word:'とんぼ',romaji:'tonnbo',hint:'とんぼ',cat:'animals'},
+  {word:'くわがた',romaji:'kuwagata',hint:'くわがた',cat:'animals'},
+  {word:'かぶとむし',romaji:'kabutomusi',hint:'かぶとむし',cat:'animals'},
+  {word:'ほたる',romaji:'hotaru',hint:'ほたる',cat:'animals'},
+  {word:'みつばち',romaji:'mitubati',hint:'🐝',cat:'animals'},
+  {word:'ありんこ',romaji:'arinnko',hint:'🐜',cat:'animals'},
+  {word:'かまきり',romaji:'kamakiri',hint:'かまきり',cat:'animals'},
+  {word:'こおろぎ',romaji:'koorogi',hint:'🦗',cat:'animals'},
+  {word:'せみ',romaji:'semi',hint:'せみ',cat:'animals'},
+  {word:'だんごむし',romaji:'danngomusi',hint:'だんごむし',cat:'animals'},
+  {word:'なめくじ',romaji:'namekuzi',hint:'なめくじ',cat:'animals'},
+  {word:'かたつむり',romaji:'katatumuri',hint:'🐌',cat:'animals'},
+  {word:'てんとうむし',romaji:'tenntomusi',hint:'🐞',cat:'animals'},
+  {word:'すずむし',romaji:'suzumusi',hint:'すずむし',cat:'animals'},
+  // 都道府県（47問）
+  {word:'ほっかいどう',romaji:'hokkaidou',hint:'北海道',cat:'prefectures'},
+  {word:'あおもり',romaji:'aomori',hint:'青森県',cat:'prefectures'},
+  {word:'いわて',romaji:'iwate',hint:'岩手県',cat:'prefectures'},
+  {word:'みやぎ',romaji:'miyagi',hint:'宮城県',cat:'prefectures'},
+  {word:'あきた',romaji:'akita',hint:'秋田県',cat:'prefectures'},
+  {word:'やまがた',romaji:'yamagata',hint:'山形県',cat:'prefectures'},
+  {word:'ふくしま',romaji:'hukusima',hint:'福島県',cat:'prefectures'},
+  {word:'いばらき',romaji:'ibaraki',hint:'茨城県',cat:'prefectures'},
+  {word:'とちぎ',romaji:'totigi',hint:'栃木県',cat:'prefectures'},
+  {word:'ぐんま',romaji:'gunnma',hint:'群馬県',cat:'prefectures'},
+  {word:'さいたま',romaji:'saitama',hint:'埼玉県',cat:'prefectures'},
+  {word:'ちば',romaji:'tiba',hint:'千葉県',cat:'prefectures'},
+  {word:'とうきょう',romaji:'toukyou',hint:'東京都',cat:'prefectures'},
+  {word:'かながわ',romaji:'kanagawa',hint:'神奈川県',cat:'prefectures'},
+  {word:'にいがた',romaji:'niigata',hint:'新潟県',cat:'prefectures'},
+  {word:'とやま',romaji:'toyama',hint:'富山県',cat:'prefectures'},
+  {word:'いしかわ',romaji:'isikawa',hint:'石川県',cat:'prefectures'},
+  {word:'ふくい',romaji:'hukui',hint:'福井県',cat:'prefectures'},
+  {word:'やまなし',romaji:'yamanasi',hint:'山梨県',cat:'prefectures'},
+  {word:'ながの',romaji:'nagano',hint:'長野県',cat:'prefectures'},
+  {word:'しずおか',romaji:'sizuoka',hint:'静岡県',cat:'prefectures'},
+  {word:'あいち',romaji:'aiti',hint:'愛知県',cat:'prefectures'},
+  {word:'みえ',romaji:'mie',hint:'三重県',cat:'prefectures'},
+  {word:'しが',romaji:'siga',hint:'滋賀県',cat:'prefectures'},
+  {word:'きょうと',romaji:'kyouto',hint:'京都府',cat:'prefectures'},
+  {word:'おおさか',romaji:'oosaka',hint:'大阪府',cat:'prefectures'},
+  {word:'ひょうご',romaji:'hyougo',hint:'兵庫県',cat:'prefectures'},
+  {word:'なら',romaji:'nara',hint:'奈良県',cat:'prefectures'},
+  {word:'わかやま',romaji:'wakayama',hint:'和歌山県',cat:'prefectures'},
+  {word:'とっとり',romaji:'tottori',hint:'鳥取県',cat:'prefectures'},
+  {word:'しまね',romaji:'simane',hint:'島根県',cat:'prefectures'},
+  {word:'おかやま',romaji:'okayama',hint:'岡山県',cat:'prefectures'},
+  {word:'ひろしま',romaji:'hirosima',hint:'広島県',cat:'prefectures'},
+  {word:'やまぐち',romaji:'yamaguti',hint:'山口県',cat:'prefectures'},
+  {word:'とくしま',romaji:'tokusima',hint:'徳島県',cat:'prefectures'},
+  {word:'かがわ',romaji:'kagawa',hint:'香川県',cat:'prefectures'},
+  {word:'えひめ',romaji:'ehime',hint:'愛媛県',cat:'prefectures'},
+  {word:'こうち',romaji:'kouti',hint:'高知県',cat:'prefectures'},
+  {word:'ふくおか',romaji:'hukuoka',hint:'福岡県',cat:'prefectures'},
+  {word:'さが',romaji:'saga',hint:'佐賀県',cat:'prefectures'},
+  {word:'ながさき',romaji:'nagasaki',hint:'長崎県',cat:'prefectures'},
+  {word:'くまもと',romaji:'kumamoto',hint:'熊本県',cat:'prefectures'},
+  {word:'おおいた',romaji:'ooita',hint:'大分県',cat:'prefectures'},
+  {word:'みやざき',romaji:'miyazaki',hint:'宮崎県',cat:'prefectures'},
+  {word:'かごしま',romaji:'kagosima',hint:'鹿児島県',cat:'prefectures'},
+  {word:'おきなわ',romaji:'okinawa',hint:'沖縄県',cat:'prefectures'},
+  // 食べ物（100問）
+  {word:'ごはん',romaji:'gohann',hint:'🍚',cat:'food'},
+  {word:'すし',romaji:'susi',hint:'🍣',cat:'food'},
+  {word:'ラーメン',romaji:'ra-menn',hint:'🍜',cat:'food'},
+  {word:'うどん',romaji:'udonn',hint:'うどん',cat:'food'},
+  {word:'そば',romaji:'soba',hint:'そば',cat:'food'},
+  {word:'カレー',romaji:'kare-',hint:'🍛',cat:'food'},
+  {word:'おにぎり',romaji:'onigiri',hint:'🍙',cat:'food'},
+  {word:'たこやき',romaji:'takoyaki',hint:'🐙焼き',cat:'food'},
+  {word:'やきそば',romaji:'yakisoba',hint:'焼きそば',cat:'food'},
+  {word:'てんぷら',romaji:'tennpura',hint:'🍤',cat:'food'},
+  {word:'とんかつ',romaji:'tonnkatu',hint:'とんかつ',cat:'food'},
+  {word:'ハンバーグ',romaji:'hannba-gu',hint:'🍔の中身',cat:'food'},
+  {word:'ぎょうざ',romaji:'gyouza',hint:'🥟',cat:'food'},
+  {word:'おでん',romaji:'odenn',hint:'おでん',cat:'food'},
+  {word:'なべ',romaji:'nabe',hint:'🍲',cat:'food'},
+  {word:'みそしる',romaji:'misosiru',hint:'味噌汁',cat:'food'},
+  {word:'おひたし',romaji:'ohitasi',hint:'おひたし',cat:'food'},
+  {word:'やきとり',romaji:'yakitori',hint:'🍗',cat:'food'},
+  {word:'しゃぶしゃぶ',romaji:'syabusyabu',hint:'しゃぶしゃぶ',cat:'food'},
+  {word:'すきやき',romaji:'sukiyaki',hint:'すき焼き',cat:'food'},
+  {word:'パン',romaji:'pann',hint:'🍞',cat:'food'},
+  {word:'ピザ',romaji:'piza',hint:'🍕',cat:'food'},
+  {word:'スパゲティ',romaji:'supageti',hint:'🍝',cat:'food'},
+  {word:'サンドイッチ',romaji:'sanndoitti',hint:'🥪',cat:'food'},
+  {word:'ハンバーガー',romaji:'hannba-ga-',hint:'🍔',cat:'food'},
+  {word:'ステーキ',romaji:'sute-ki',hint:'🥩',cat:'food'},
+  {word:'グラタン',romaji:'guratann',hint:'グラタン',cat:'food'},
+  {word:'オムライス',romaji:'omuraisu',hint:'オムライス',cat:'food'},
+  {word:'シチュー',romaji:'sityu-',hint:'シチュー',cat:'food'},
+  {word:'ポテト',romaji:'poteto',hint:'🍟',cat:'food'},
+  {word:'ケーキ',romaji:'ke-ki',hint:'🍰',cat:'food'},
+  {word:'アイスクリーム',romaji:'aisukuri-mu',hint:'🍨',cat:'food'},
+  {word:'プリン',romaji:'purinn',hint:'🍮',cat:'food'},
+  {word:'クッキー',romaji:'kukki-',hint:'🍪',cat:'food'},
+  {word:'チョコレート',romaji:'tyokore-to',hint:'🍫',cat:'food'},
+  {word:'ドーナツ',romaji:'do-natu',hint:'🍩',cat:'food'},
+  {word:'パフェ',romaji:'pahe',hint:'パフェ',cat:'food'},
+  {word:'ゼリー',romaji:'zeri-',hint:'ゼリー',cat:'food'},
+  {word:'だんご',romaji:'danngo',hint:'🍡',cat:'food'},
+  {word:'もち',romaji:'moti',hint:'餅',cat:'food'},
+  {word:'りんご',romaji:'rinngo',hint:'🍎',cat:'food'},
+  {word:'バナナ',romaji:'banana',hint:'🍌',cat:'food'},
+  {word:'いちご',romaji:'itigo',hint:'🍓',cat:'food'},
+  {word:'みかん',romaji:'mikann',hint:'🍊',cat:'food'},
+  {word:'すいか',romaji:'suika',hint:'🍉',cat:'food'},
+  {word:'ぶどう',romaji:'budou',hint:'🍇',cat:'food'},
+  {word:'もも',romaji:'momo',hint:'🍑',cat:'food'},
+  {word:'メロン',romaji:'meronn',hint:'🍈',cat:'food'},
+  {word:'なし',romaji:'nasi',hint:'🍐',cat:'food'},
+  {word:'さくらんぼ',romaji:'sakurannbo',hint:'🍒',cat:'food'},
+  {word:'キウイ',romaji:'kiui',hint:'🥝',cat:'food'},
+  {word:'パイナップル',romaji:'painappuru',hint:'🍍',cat:'food'},
+  {word:'レモン',romaji:'remonn',hint:'🍋',cat:'food'},
+  {word:'オレンジ',romaji:'oreinnzi',hint:'オレンジ',cat:'food'},
+  {word:'かき',romaji:'kaki',hint:'柿',cat:'food'},
+  {word:'とまと',romaji:'tomato',hint:'🍅',cat:'food'},
+  {word:'きゅうり',romaji:'kyuuri',hint:'🥒',cat:'food'},
+  {word:'にんじん',romaji:'ninnjinn',hint:'🥕',cat:'food'},
+  {word:'たまねぎ',romaji:'tamanegi',hint:'🧅',cat:'food'},
+  {word:'じゃがいも',romaji:'zyagaimo',hint:'🥔',cat:'food'},
+  {word:'ブロッコリー',romaji:'burokkori-',hint:'🥦',cat:'food'},
+  {word:'ピーマン',romaji:'pi-mann',hint:'🫑',cat:'food'},
+  {word:'なす',romaji:'nasu',hint:'🍆',cat:'food'},
+  {word:'キャベツ',romaji:'kyabetu',hint:'キャベツ',cat:'food'},
+  {word:'レタス',romaji:'retasu',hint:'レタス',cat:'food'},
+  {word:'ほうれんそう',romaji:'hourensou',hint:'ほうれん草',cat:'food'},
+  {word:'だいこん',romaji:'daikonn',hint:'大根',cat:'food'},
+  {word:'ごぼう',romaji:'gobou',hint:'ごぼう',cat:'food'},
+  {word:'かぼちゃ',romaji:'kabotya',hint:'🎃',cat:'food'},
+  {word:'とうもろこし',romaji:'toumorokosi',hint:'🌽',cat:'food'},
+  {word:'みず',romaji:'mizu',hint:'💧',cat:'food'},
+  {word:'おちゃ',romaji:'otya',hint:'🍵',cat:'food'},
+  {word:'ミルク',romaji:'miruku',hint:'🥛',cat:'food'},
+  {word:'ジュース',romaji:'zyu-su',hint:'🧃',cat:'food'},
+  {word:'コーヒー',romaji:'ko-hi-',hint:'☕',cat:'food'},
+  {word:'コーラ',romaji:'ko-ra',hint:'コーラ',cat:'food'},
+  {word:'たまご',romaji:'tamago',hint:'🥚',cat:'food'},
+  {word:'チーズ',romaji:'ti-zu',hint:'🧀',cat:'food'},
+  {word:'バター',romaji:'bata-',hint:'🧈',cat:'food'},
+  {word:'にく',romaji:'niku',hint:'🥩',cat:'food'},
+  {word:'やさい',romaji:'yasai',hint:'🥗',cat:'food'},
+  {word:'くだもの',romaji:'kudamono',hint:'🍎🍌',cat:'food'},
+  {word:'ごま',romaji:'goma',hint:'ごま',cat:'food'},
+  {word:'しょうゆ',romaji:'syouyu',hint:'醤油',cat:'food'},
+  {word:'みそ',romaji:'miso',hint:'味噌',cat:'food'},
+  {word:'さとう',romaji:'satou',hint:'砂糖',cat:'food'},
+  {word:'しお',romaji:'sio',hint:'🧂',cat:'food'},
+  {word:'こしょう',romaji:'kosyou',hint:'こしょう',cat:'food'},
+  {word:'のり',romaji:'nori',hint:'海苔',cat:'food'},
+  {word:'わかめ',romaji:'wakame',hint:'わかめ',cat:'food'},
+  {word:'こんぶ',romaji:'connbu',hint:'昆布',cat:'food'},
+  {word:'とうふ',romaji:'touhu',hint:'豆腐',cat:'food'},
+  {word:'なっとう',romaji:'nattou',hint:'納豆',cat:'food'},
+  {word:'のり',romaji:'nori',hint:'のり',cat:'food'},
+  {word:'ヨーグルト',romaji:'yo-guruto',hint:'ヨーグルト',cat:'food'},
+  {word:'アイス',romaji:'aisu',hint:'🍦',cat:'food'},
+  {word:'かき氷',romaji:'kakigoori',hint:'かき氷',cat:'food'},
+  // 英単語（64問）
+  {word:'apple',romaji:'apple',hint:'🍎 りんご',cat:'english'},
+  {word:'banana',romaji:'banana',hint:'🍌 バナナ',cat:'english'},
+  {word:'orange',romaji:'orange',hint:'🍊 オレンジ',cat:'english'},
+  {word:'school',romaji:'school',hint:'🏫 学校',cat:'english'},
+  {word:'book',romaji:'book',hint:'📚 本',cat:'english'},
+  {word:'pen',romaji:'pen',hint:'🖊️ ペン',cat:'english'},
+  {word:'cat',romaji:'cat',hint:'🐈 ねこ',cat:'english'},
+  {word:'dog',romaji:'dog',hint:'🐕 いぬ',cat:'english'},
+  {word:'sun',romaji:'sun',hint:'☀️ 太陽',cat:'english'},
+  {word:'moon',romaji:'moon',hint:'🌙 月',cat:'english'},
+  {word:'star',romaji:'star',hint:'⭐ 星',cat:'english'},
+  {word:'water',romaji:'water',hint:'💧 水',cat:'english'},
+  {word:'fire',romaji:'fire',hint:'🔥 火',cat:'english'},
+  {word:'tree',romaji:'tree',hint:'🌳 木',cat:'english'},
+  {word:'flower',romaji:'flower',hint:'🌸 花',cat:'english'},
+  {word:'music',romaji:'music',hint:'🎵 音楽',cat:'english'},
+  {word:'sport',romaji:'sport',hint:'⚽ スポーツ',cat:'english'},
+  {word:'happy',romaji:'happy',hint:'😊 しあわせ',cat:'english'},
+  {word:'friend',romaji:'friend',hint:'👫 ともだち',cat:'english'},
+  {word:'family',romaji:'family',hint:'👨‍👩‍👧 かぞく',cat:'english'},
+  {word:'dream',romaji:'dream',hint:'💭 ゆめ',cat:'english'},
+  {word:'heart',romaji:'heart',hint:'❤️ こころ',cat:'english'},
+  {word:'smile',romaji:'smile',hint:'😊 えがお',cat:'english'},
+  {word:'earth',romaji:'earth',hint:'🌍 地球',cat:'english'},
+  {word:'monday',romaji:'monday',hint:'月曜日',cat:'english'},
+  {word:'tuesday',romaji:'tuesday',hint:'火曜日',cat:'english'},
+  {word:'wednesday',romaji:'wednesday',hint:'水曜日',cat:'english'},
+  {word:'thursday',romaji:'thursday',hint:'木曜日',cat:'english'},
+  {word:'friday',romaji:'friday',hint:'金曜日',cat:'english'},
+  {word:'saturday',romaji:'saturday',hint:'土曜日',cat:'english'},
+  {word:'sunday',romaji:'sunday',hint:'日曜日',cat:'english'},
+  {word:'red',romaji:'red',hint:'🔴 あか',cat:'english'},
+  {word:'blue',romaji:'blue',hint:'🔵 あお',cat:'english'},
+  {word:'green',romaji:'green',hint:'🟢 みどり',cat:'english'},
+  {word:'yellow',romaji:'yellow',hint:'🟡 きいろ',cat:'english'},
+  {word:'white',romaji:'white',hint:'⚪ しろ',cat:'english'},
+  {word:'black',romaji:'black',hint:'⚫ くろ',cat:'english'},
+  {word:'pink',romaji:'pink',hint:'ピンク',cat:'english'},
+  {word:'purple',romaji:'purple',hint:'🟣 むらさき',cat:'english'},
+  {word:'brown',romaji:'brown',hint:'🟤 ちゃいろ',cat:'english'},
+  {word:'gray',romaji:'gray',hint:'グレー',cat:'english'},
+  {word:'zero',romaji:'zero',hint:'0',cat:'english'},
+  {word:'one',romaji:'one',hint:'1',cat:'english'},
+  {word:'two',romaji:'two',hint:'2',cat:'english'},
+  {word:'three',romaji:'three',hint:'3',cat:'english'},
+  {word:'four',romaji:'four',hint:'4',cat:'english'},
+  {word:'five',romaji:'five',hint:'5',cat:'english'},
+  {word:'six',romaji:'six',hint:'6',cat:'english'},
+  {word:'seven',romaji:'seven',hint:'7',cat:'english'},
+  {word:'eight',romaji:'eight',hint:'8',cat:'english'},
+  {word:'nine',romaji:'nine',hint:'9',cat:'english'},
+  {word:'ten',romaji:'ten',hint:'10',cat:'english'},
+  {word:'eleven',romaji:'eleven',hint:'11',cat:'english'},
+  {word:'twelve',romaji:'twelve',hint:'12',cat:'english'},
+  {word:'piano',romaji:'piano',hint:'🎹 ピアノ',cat:'english'},
+  {word:'guitar',romaji:'guitar',hint:'🎸 ギター',cat:'english'},
+  {word:'violin',romaji:'violin',hint:'🎻 バイオリン',cat:'english'},
+  {word:'drum',romaji:'drum',hint:'🥁 ドラム',cat:'english'},
+  {word:'flute',romaji:'flute',hint:'フルート',cat:'english'},
+  {word:'trumpet',romaji:'trumpet',hint:'🎺 トランペット',cat:'english'},
+  {word:'organ',romaji:'organ',hint:'オルガン',cat:'english'},
+  {word:'clarinet',romaji:'clarinet',hint:'クラリネット',cat:'english'},
+  {word:'color',romaji:'color',hint:'色',cat:'english'},
+  {word:'love',romaji:'love',hint:'愛',cat:'english'},
+  // 色々な言葉（80問）
+  {word:'うみ',romaji:'umi',hint:'海',cat:'words'},
+  {word:'そら',romaji:'sora',hint:'空',cat:'words'},
+  {word:'ほし',romaji:'hosi',hint:'星',cat:'words'},
+  {word:'つき',romaji:'tuki',hint:'月',cat:'words'},
+  {word:'はな',romaji:'hana',hint:'花',cat:'words'},
+  {word:'かぜ',romaji:'kaze',hint:'風',cat:'words'},
+  {word:'ゆき',romaji:'yuki',hint:'雪',cat:'words'},
+  {word:'くも',romaji:'kumo',hint:'雲',cat:'words'},
+  {word:'かわ',romaji:'kawa',hint:'川',cat:'words'},
+  {word:'もり',romaji:'mori',hint:'森',cat:'words'},
+  {word:'やま',romaji:'yama',hint:'山',cat:'words'},
+  {word:'みず',romaji:'mizu',hint:'水',cat:'words'},
+  {word:'ひかり',romaji:'hikari',hint:'光',cat:'words'},
+  {word:'にじ',romaji:'nizi',hint:'虹',cat:'words'},
+  {word:'いなずま',romaji:'inazuma',hint:'稲妻',cat:'words'},
+  {word:'たいよう',romaji:'taiyou',hint:'太陽',cat:'words'},
+  {word:'ちきゅう',romaji:'tikyuu',hint:'地球',cat:'words'},
+  {word:'うちゅう',romaji:'utyuu',hint:'宇宙',cat:'words'},
+  {word:'ロケット',romaji:'roketto',hint:'宇宙船',cat:'words'},
+  {word:'せいざ',romaji:'seiza',hint:'星座',cat:'words'},
+  {word:'ぎんが',romaji:'ginnnga',hint:'銀河',cat:'words'},
+  {word:'たんけん',romaji:'tannkenn',hint:'探検',cat:'words'},
+  {word:'ぼうけん',romaji:'bounnkenn',hint:'冒険',cat:'words'},
+  {word:'かがく',romaji:'kagaku',hint:'科学',cat:'words'},
+  {word:'でんき',romaji:'dennki',hint:'電気',cat:'words'},
+  {word:'ひこうき',romaji:'hikouki',hint:'飛行機',cat:'words'},
+  {word:'しんかんせん',romaji:'sinnkannsenn',hint:'新幹線',cat:'words'},
+  {word:'どうぶつ',romaji:'doubutu',hint:'動物',cat:'words'},
+  {word:'しぜん',romaji:'sizenn',hint:'自然',cat:'words'},
+  {word:'たいけん',romaji:'taikenn',hint:'体験',cat:'words'},
+  {word:'ありがとう',romaji:'arigatou',hint:'感謝',cat:'words'},
+  {word:'やさしさ',romaji:'yasasisa',hint:'やさしさ',cat:'words'},
+  {word:'ゆめ',romaji:'yume',hint:'夢',cat:'words'},
+  {word:'きぼう',romaji:'kibou',hint:'希望',cat:'words'},
+  {word:'いのち',romaji:'inoti',hint:'命',cat:'words'},
+  {word:'しあわせ',romaji:'siawase',hint:'幸せ',cat:'words'},
+  {word:'ともだち',romaji:'tomodati',hint:'友達',cat:'words'},
+  {word:'かぞく',romaji:'kazoku',hint:'家族',cat:'words'},
+  {word:'げんき',romaji:'gennki',hint:'元気',cat:'words'},
+  {word:'えがお',romaji:'egao',hint:'笑顔',cat:'words'},
+  {word:'まなぶ',romaji:'manabu',hint:'学ぶ',cat:'words'},
+  {word:'そだつ',romaji:'sodatu',hint:'育つ',cat:'words'},
+  {word:'たすける',romaji:'tasukeru',hint:'助ける',cat:'words'},
+  {word:'つながる',romaji:'tunagaru',hint:'つながる',cat:'words'},
+  {word:'かんしゃ',romaji:'kannsya',hint:'感謝',cat:'words'},
+  {word:'せかい',romaji:'sekai',hint:'世界',cat:'words'},
+  {word:'みらい',romaji:'mirai',hint:'未来',cat:'words'},
+  {word:'へいわ',romaji:'heiwa',hint:'平和',cat:'words'},
+  {word:'じゆう',romaji:'ziyuu',hint:'自由',cat:'words'},
+  {word:'こころ',romaji:'kokoro',hint:'心',cat:'words'},
+  {word:'ちから',romaji:'tikara',hint:'力',cat:'words'},
+  {word:'がんばる',romaji:'gannbaru',hint:'がんばる',cat:'words'},
+  {word:'あきらめない',romaji:'akiramenai',hint:'あきらめない',cat:'words'},
+  {word:'すなお',romaji:'sunao',hint:'素直',cat:'words'},
+  {word:'そんけい',romaji:'sonnkei',hint:'尊敬',cat:'words'},
+  {word:'しんらい',romaji:'sinnrai',hint:'信頼',cat:'words'},
+  {word:'やくそく',romaji:'yakusoku',hint:'約束',cat:'words'},
+  {word:'せいちょう',romaji:'seityou',hint:'成長',cat:'words'},
+  {word:'かんどう',romaji:'kanndou',hint:'感動',cat:'words'},
+  {word:'いっしょうけんめい',romaji:'issyoukennmei',hint:'一生懸命',cat:'words'},
+  {word:'いちごいちえ',romaji:'itigoitie',hint:'一期一会',cat:'words'},
+  {word:'おんこちしん',romaji:'onnkotisinn',hint:'温故知新',cat:'words'},
+  {word:'いしんでんしん',romaji:'isinndennsinn',hint:'以心伝心',cat:'words'},
+  {word:'にっしんげっぽ',romaji:'nissinnngeppou',hint:'日進月歩',cat:'words'},
+  {word:'しちてんはっき',romaji:'sititennhakki',hint:'七転八起',cat:'words'},
+  {word:'ゆうきりんりん',romaji:'yuukirinnrinn',hint:'勇気凛々',cat:'words'},
+  {word:'じごじとく',romaji:'zigozitoku',hint:'自業自得',cat:'words'},
+  {word:'しんしんきえい',romaji:'sinnsinnnkiei',hint:'新進気鋭',cat:'words'},
+  {word:'どりょく',romaji:'doryoku',hint:'努力',cat:'words'},
+  {word:'きょうりょく',romaji:'kyouryoku',hint:'協力',cat:'words'},
+  {word:'けんきゅう',romaji:'kennkyuu',hint:'研究',cat:'words'},
+  {word:'はっけん',romaji:'hakkenn',hint:'発見',cat:'words'},
+  {word:'ちょうせん',romaji:'tyousenn',hint:'挑戦',cat:'words'},
+  {word:'かいけつ',romaji:'kaiketu',hint:'解決',cat:'words'},
+  {word:'そうぞう',romaji:'souzou',hint:'創造',cat:'words'},
+  {word:'じっせん',romaji:'zissenn',hint:'実践',cat:'words'},
+  {word:'はんせい',romaji:'hannsei',hint:'反省',cat:'words'},
+  {word:'けいけん',romaji:'keikenn',hint:'経験',cat:'words'},
+  {word:'もくひょう',romaji:'mokuhyou',hint:'目標',cat:'words'},
+  // ことわざ（30問）
+  {word:'いしのうえにもさんねん',romaji:'isinouenimoさんnenn',hint:'我慢強く続ければ成功する',cat:'proverbs'},
+  {word:'いそがばまわれ',romaji:'isogabamaware',hint:'急ぐときこそ安全な道を',cat:'proverbs'},
+  {word:'いぬもあるけばぼうにあたる',romaji:'inumoarukebabouniataru',hint:'行動すると思わぬ幸運がある',cat:'proverbs'},
+  {word:'うそつきはどろぼうのはじまり',romaji:'usotukihadorobounohazimari',hint:'嘘をつくと悪いことにつながる',cat:'proverbs'},
+  {word:'うわさをすればかげがさす',romaji:'uwasawosurebakaげgasasu',hint:'噂をしていると本人が現れる',cat:'proverbs'},
+  {word:'おにのめにもなみだ',romaji:'oninomeにもnamida',hint:'強い人でも涙を流すことがある',cat:'proverbs'},
+  {word:'おにのいぬまのせんたく',romaji:'oniのinumaのsenntaku',hint:'怖い人がいない間に羽を伸ばす',cat:'proverbs'},
+  {word:'かわいいこにはたびをさせよ',romaji:'kawaiikonihatabi wosasよyo',hint:'子どもは苦労させて育てよ',cat:'proverbs'},
+  {word:'かえるのこはかえる',romaji:'kaeruのkohakaeru',hint:'子は親に似るものだ',cat:'proverbs'},
+  {word:'きのうはひとのみきょうはわがみ',romaji:'kinouはhiとのmikyouはwagami',hint:'人の不幸は自分にも起こりうる',cat:'proverbs'},
+  {word:'くちはわざわいのもと',romaji:'kutiはwazawaiのmoto',hint:'軽率な発言は災いを招く',cat:'proverbs'},
+  {word:'けいぞくはちからなり',romaji:'keizokuはtikaranari',hint:'続けることが力になる',cat:'proverbs'},
+  {word:'こうかいさきにたたず',romaji:'koukaisakinitatazu',hint:'後悔しても取り返しがつかない',cat:'proverbs'},
+  {word:'ころばぬさきのつえ',romaji:'korobanusakiのtue',hint:'失敗しないよう前もって準備する',cat:'proverbs'},
+  {word:'さるもきからおちる',romaji:'saruもkikaraotiru',hint:'名人でも失敗することがある',cat:'proverbs'},
+  {word:'さわらぬかみにたたりなし',romaji:'sawaranu kamiにtatariなsi',hint:'関わらなければ面倒に巻き込まれない',cat:'proverbs'},
+  {word:'しっぱいはせいこうのもと',romaji:'sippaiはseikouのmoto',hint:'失敗から学んで成功につなげる',cat:'proverbs'},
+  {word:'しらぬがほとけ',romaji:'siranugahotoke',hint:'知らないほうが気楽なこともある',cat:'proverbs'},
+  {word:'すきこそもののじょうずなれ',romaji:'sukikosomonoのzyouzunare',hint:'好きなことは上手になれる',cat:'proverbs'},
+  {word:'せいしんいっとうなにごとかならざらん',romaji:'seisinnittounanigotokanarならanzarann',hint:'集中すれば何でもできる',cat:'proverbs'},
+  {word:'たなからぼたもち',romaji:'tanakarabotamoti',hint:'思いがけない幸運が訪れる',cat:'proverbs'},
+  {word:'たつとりあとをにごさず',romaji:'tatutoriatoをnigosazu',hint:'立ち去るときは跡を綺麗にする',cat:'proverbs'},
+  {word:'ちりもつもればやまとなる',romaji:'tirimotumorebaやまtoなru',hint:'小さなことも積み重なれば大きくなる',cat:'proverbs'},
+  {word:'つるのひとこえ',romaji:'turuのhitokoe',hint:'権力ある人の一言で決まる',cat:'proverbs'},
+  {word:'てつはあついうちにうて',romaji:'tetuはatuiutiにute',hint:'物事は機を逃さず行動せよ',cat:'proverbs'},
+  {word:'でるくいはうたれる',romaji:'derukuiはutareru',hint:'目立つ人は批判されやすい',cat:'proverbs'},
+  {word:'ないそではhararenu',romaji:'naisodeははrarenu',hint:'ないものは出せない',cat:'proverbs'},
+  {word:'ぬかにくぎ',romaji:'nukanikugi',hint:'手応えがなく効き目がない',cat:'proverbs'},
+  {word:'ながいものにはまかれろ',romaji:'nagaimonoにはmakarero',hint:'強い者には従った方がよい',cat:'proverbs'},
+  {word:'ほねおりぞんのくたびれもうけ',romaji:'honeoriぞんのkutabiremoke',hint:'苦労しても報われないこと',cat:'proverbs'},
+  // 学校・文房具（29問）
+  {word:'えんぴつ',romaji:'ennpitu',hint:'✏️',cat:'school'},
+  {word:'けしごむ',romaji:'kesigomu',hint:'消しゴム',cat:'school'},
+  {word:'ものさし',romaji:'monosasi',hint:'📏',cat:'school'},
+  {word:'はさみ',romaji:'hasami',hint:'✂️',cat:'school'},
+  {word:'のり',romaji:'nori',hint:'のり',cat:'school'},
+  {word:'ランドセル',romaji:'ranndoseru',hint:'🎒',cat:'school'},
+  {word:'きょうかしょ',romaji:'kyoukasyo',hint:'📖',cat:'school'},
+  {word:'ノート',romaji:'no-to',hint:'📓',cat:'school'},
+  {word:'クレヨン',romaji:'kureyonn',hint:'🖍️',cat:'school'},
+  {word:'えのぐ',romaji:'enogu',hint:'🎨',cat:'school'},
+  {word:'コンパス',romaji:'konnpasu',hint:'コンパス',cat:'school'},
+  {word:'じょうぎ',romaji:'zyougi',hint:'定規',cat:'school'},
+  {word:'ふでばこ',romaji:'hudebako',hint:'筆箱',cat:'school'},
+  {word:'つくえ',romaji:'tukue',hint:'机',cat:'school'},
+  {word:'いす',romaji:'isu',hint:'椅子',cat:'school'},
+  {word:'こくばん',romaji:'kokubann',hint:'黒板',cat:'school'},
+  {word:'チョーク',romaji:'tyo-ku',hint:'チョーク',cat:'school'},
+  {word:'たいいくかん',romaji:'taiiukann',hint:'🏃体育館',cat:'school'},
+  {word:'としょかん',romaji:'tosyokann',hint:'📚図書館',cat:'school'},
+  {word:'きょうしつ',romaji:'kyousitu',hint:'教室',cat:'school'},
+  {word:'ホッチキス',romaji:'hottikisu',hint:'ホッチキス',cat:'school'},
+  {word:'セロハンテープ',romaji:'serohannte-pu',hint:'セロハンテープ',cat:'school'},
+  {word:'カッターナイフ',romaji:'katta-naihu',hint:'カッター',cat:'school'},
+  {word:'ぶんどき',romaji:'bunndoki',hint:'分度器',cat:'school'},
+  {word:'ほけんしつ',romaji:'hokensitu',hint:'🏥保健室',cat:'school'},
+  {word:'りかしつ',romaji:'rikasitu',hint:'🔬理科室',cat:'school'},
+  {word:'おんがくしつ',romaji:'onngakusitu',hint:'🎵音楽室',cat:'school'},
+  {word:'こうてい',romaji:'koutei',hint:'校庭',cat:'school'},
+  {word:'せんせい',romaji:'sensei',hint:'👨‍🏫先生',cat:'school'},
+  // スポーツ（40問）
+  {word:'サッカー',romaji:'sakka-',hint:'⚽',cat:'sports'},
+  {word:'やきゅう',romaji:'yakyuu',hint:'⚾',cat:'sports'},
+  {word:'バスケット',romaji:'basuketto',hint:'🏀',cat:'sports'},
+  {word:'バレーボール',romaji:'bare-bo-ru',hint:'🏐',cat:'sports'},
+  {word:'テニス',romaji:'tenisu',hint:'🎾',cat:'sports'},
+  {word:'すいえい',romaji:'suiei',hint:'🏊',cat:'sports'},
+  {word:'たいそう',romaji:'taisou',hint:'🤸体操',cat:'sports'},
+  {word:'じゅうどう',romaji:'zyuudou',hint:'🥋柔道',cat:'sports'},
+  {word:'からて',romaji:'karate',hint:'🥋空手',cat:'sports'},
+  {word:'けんどう',romaji:'kenndou',hint:'剣道',cat:'sports'},
+  {word:'スキー',romaji:'suki-',hint:'⛷️',cat:'sports'},
+  {word:'スケート',romaji:'suke-to',hint:'⛸️',cat:'sports'},
+  {word:'ランニング',romaji:'rannninngu',hint:'🏃',cat:'sports'},
+  {word:'サイクリング',romaji:'saikurinngu',hint:'🚴',cat:'sports'},
+  {word:'ボクシング',romaji:'bokusinngu',hint:'🥊',cat:'sports'},
+  {word:'レスリング',romaji:'resurinngu',hint:'🤼',cat:'sports'},
+  {word:'アーチェリー',romaji:'a-tyeri-',hint:'🏹',cat:'sports'},
+  {word:'バドミントン',romaji:'badominntonnnn',hint:'🏸',cat:'sports'},
+  {word:'たっきゅう',romaji:'takkyuu',hint:'🏓卓球',cat:'sports'},
+  {word:'ゴルフ',romaji:'goruhu',hint:'⛳',cat:'sports'},
+  {word:'ラグビー',romaji:'ragubi-',hint:'🏉',cat:'sports'},
+  {word:'サーフィン',romaji:'sa-finn',hint:'🏄',cat:'sports'},
+  {word:'スケートボード',romaji:'suke-tobo-do',hint:'🛹',cat:'sports'},
+  {word:'やりなげ',romaji:'yarinnage',hint:'やり投げ',cat:'sports'},
+  {word:'はしりたかとび',romaji:'hasiritakatobi',hint:'走り高跳び',cat:'sports'},
+  {word:'ハンドボール',romaji:'hanndobo-ru',hint:'🤾ハンドボール',cat:'sports'},
+  {word:'ソフトボール',romaji:'sohutobo-ru',hint:'🥎',cat:'sports'},
+  {word:'ドッジボール',romaji:'dottiboーru',hint:'ドッジボール',cat:'sports'},
+  {word:'バレエ',romaji:'bare-',hint:'🩰',cat:'sports'},
+  {word:'ヨガ',romaji:'yoga',hint:'🧘ヨガ',cat:'sports'},
+  {word:'マラソン',romaji:'marasonn',hint:'🏃‍♀️マラソン',cat:'sports'},
+  {word:'リレー',romaji:'rire-',hint:'🏃‍♂️💨リレー',cat:'sports'},
+  {word:'とびばこ',romaji:'tobibako',hint:'跳び箱',cat:'sports'},
+  {word:'なわとび',romaji:'nawotobi',hint:'なわとび',cat:'sports'},
+  {word:'てつぼう',romaji:'tetubou',hint:'鉄棒',cat:'sports'},
+  {word:'マットうんどう',romaji:'mattounnndou',hint:'マット運動',cat:'sports'},
+  {word:'バッティング',romaji:'battinngu',hint:'⚾バッティング',cat:'sports'},
+  {word:'ピッチング',romaji:'pittinngu',hint:'⚾ピッチング',cat:'sports'},
+  {word:'キャッチボール',romaji:'kyattibo-ru',hint:'⚾キャッチボール',cat:'sports'},
+  {word:'シュート',romaji:'syu-to',hint:'🏀シュート',cat:'sports'},
 ];
-
-// =============================================
-//  状態
-// =============================================
-let score=0, kills=0, totalTyped=0, correctTyped=0;
-let timerSec=TOTAL_TIME, timerInterval=null;
-let wordPool=[], wordIdx=0, charIdx=0;
-let gameActive=false;
-let currentWord=null;
-// モンスター歩行
-let monsterStartTime=0, monsterRafId=null;
-// コンボ・スピード計測
-let combo=0;          // 現在のコンボ数（ミスなし連続撃破数）
-let wordStartTime=0;  // 単語の最初のキー入力時刻
-let wordStarted=false;// 単語の計測開始フラグ
-// 登録済みスコア（ランキング表示用）
-let lastSavedScore=null;
-
-// =============================================
-//  初期化
-// =============================================
-function initStars(){
-  const c=document.getElementById('stars');
-  for(let i=0;i<100;i++){
-    const s=document.createElement('div');
-    s.className='star';
-    const sz=Math.random()*2.5+.5;
-    s.style.cssText=`width:${sz}px;height:${sz}px;`+
       `left:${Math.random()*100}%;top:${Math.random()*100}%;`+
       `--d:${(Math.random()*3+1).toFixed(1)}s;`+
       `--dl:${(Math.random()*4).toFixed(1)}s;`+
@@ -858,18 +1354,25 @@ function startMonsterWalk(stage, monEl, bubble){
 }
 
 function setMonsterPos(monEl, bubble, stage, ratio){
-  // ratio: 1.0=右端, 0.0=左端
-  const sw=stage.offsetWidth||800;
-  const monW=56;
-  const bw=bubble.offsetWidth||140;
-  const rightEdge=sw-monW-8;
-  const leftEdge=8;
-  const left=leftEdge+(rightEdge-leftEdge)*ratio;
-  monEl.style.left=left+'px';
-  // フキダシ
-  const bLeft=Math.min(sw-bw-8, Math.max(8, left-(bw-monW)/2));
-  bubble.style.left=bLeft+'px';
-  bubble.style.bottom='76px';
+  // ratio: 1.0=奥（小さい）→ 0.0=手前（大きい）
+  // progress = 0.0(奥) → 1.0(手前)
+  const progress = 1.0 - ratio;
+
+  // スケール: 奥0.12 → 手前1.0（イーズイン感を出すため二乗）
+  const scale = 0.12 + 0.88 * (progress * progress);
+  // 透明度: 奥0.15 → 手前1.0
+  const opacity = 0.15 + 0.85 * progress;
+  // 縦位置: 奥は上寄り・手前は下
+  const sh = stage.offsetHeight || 160;
+  const bottomPx = 6 + (sh - 70) * (1 - progress * progress);
+
+  monEl.style.setProperty('--ms', scale);
+  monEl.style.setProperty('--mo', opacity);
+  monEl.style.bottom = bottomPx + 'px';
+
+  // フキダシ: モンスターの上に追従
+  const monHeightPx = 5 * 16 * scale; // font-size:5rem * scale
+  bubble.style.bottom = (bottomPx + monHeightPx + 8) + 'px';
 }
 
 function onMonsterReached(){
@@ -1140,6 +1643,44 @@ function highlightNextKey(){
 let feedbackTimer=null;
 function showFeedback(msg,type){
   const el=document.getElementById('feedback-msg');
+  el.textContent=msg;
+  el.className='feedback-msg '+type;
+  clearTimeout(feedbackTimer);
+  feedbackTimer=setTimeout(()=>clearFeedback(),1100);
+}
+function clearFeedback(){
+  const el=document.getElementById('feedback-msg');
+  el.textContent='';
+  el.className='feedback-msg';
+}
+
+function spawnParticles(){
+  const colors=['#69f0ae','#00e5ff','#ffd740','#ff6b35','#a855f7','#ff6b6b'];
+  const stage=document.getElementById('monster-stage');
+  const rect=stage.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height*0.5;
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const sz=Math.random()*13+5;
+    const ang=Math.random()*Math.PI*2;
+    const dist=Math.random()*140+40;
+    p.style.cssText=`width:${sz}px;height:${sz}px;`+
+      `background:${colors[i%colors.length]};`+
+      `left:${cx}px;top:${cy}px;`+
+      `--tx:${Math.cos(ang)*dist}px;--ty:${Math.sin(ang)*dist}px;`+
+      `--dur:${(.4+Math.random()*.5).toFixed(2)}s;`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),800);
+  }
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
   el.textContent=msg;
   el.className='feedback-msg '+type;
   clearTimeout(feedbackTimer);
